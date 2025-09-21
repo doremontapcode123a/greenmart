@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thanh toán - Green Grocer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Header -->
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <div class="text-2xl font-bold">GREEN <span class="text-yellow-300">MART</span></div>
+    <a href="cart.html" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
+      ← Giỏ hàng
+    </a>
+  </header>
+
+  <!-- Checkout -->
+  <main class="p-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-green-800 mb-6">Thông tin thanh toán</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <!-- Form nhập thông tin -->
+      <div class="bg-white p-6 shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-4">Thông tin khách hàng</h2>
+        <form>
+          <label class="block mb-2">Họ và tên</label>
+          <input type="text" class="w-full border p-2 rounded mb-4" placeholder="Nguyễn Văn A">
+
+          <label class="block mb-2">Số điện thoại</label>
+          <input type="text" class="w-full border p-2 rounded mb-4" placeholder="0123456789">
+
+          <label class="block mb-2">Địa chỉ giao hàng</label>
+          <textarea class="w-full border p-2 rounded mb-4" rows="3" placeholder="123, Đường ABC, Quận XYZ"></textarea>
+
+          <label class="block mb-2">Phương thức thanh toán</label>
+          <select class="w-full border p-2 rounded mb-4">
+            <option>Thanh toán khi nhận hàng (COD)</option>
+            <option>Chuyển khoản ngân hàng</option>
+            <option>Ví điện tử (Momo, ZaloPay...)</option>
+          </select>
+        </form>
+      </div>
+
+      <!-- Tóm tắt đơn hàng -->
+      <div class="bg-white p-6 shadow rounded-lg">
+        <h2 class="text-xl font-semibold mb-4">Đơn hàng của bạn</h2>
+        <div class="border-b pb-3 mb-3">

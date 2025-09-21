@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng - Green Grocer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Header -->
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <div class="text-2xl font-bold">GREEN <span class="text-yellow-300">MART</span></div>
+    <a href="{% url 'home' %}" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
+      ← Tiếp tục mua sắm
+    </a>
+  </header>
+
+  <!-- Giỏ hàng -->
+  <main class="p-8">
+    <h1 class="text-3xl font-bold text-green-800 mb-6">Giỏ hàng của bạn</h1>
+    <div class="bg-white shadow rounded-lg p-6">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-green-100 text-left">
+            <th class="p-3">Sản phẩm</th>
+            <th class="p-3">Số lượng</th>
+            <th class="p-3">Giá</th>
+            <th class="p-3">Thành tiền</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="p-3">Cà chua</td>
+            <td class="p-3">2</td>
+            <td class="p-3">25,000₫</td>
+            <td class="p-3 font-bold">50,000₫</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="text-right mt-6">
+      <a href="{% url 'checkout' %}" class="text-right mt-6">
+        <button class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-500">
+          Thanh toán
+        </button>
+      </a>
+     </div>
+    </div>
+  </main>
+</body>
+</html>

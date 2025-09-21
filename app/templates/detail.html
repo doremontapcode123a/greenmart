@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Green Grocer - Rau củ sạch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<nav class="bg-green-700 text-white px-6 py-4 flex justify-between items-center left-0 w-full shadow z-50">
+  <!-- Logo -->
+  <a href="{% url 'search' %}" class="text-2xl font-bold">
+    GREEN <span class="text-yellow-300">MART</span>
+  </a>
+
+  <!-- Menu -->
+  
+
+
+  <!-- Thanh tìm kiếm -->
+  <form action="{% url 'home' %}" method="get" class="hidden md:flex items-center mx-6 w-1/3">
+    <input 
+      type="text" 
+      name="q" 
+      placeholder="Tìm kiếm sản phẩm bạn muốn..."
+      class="w-full px-4 py-2 rounded-l border border-gray-300 text-black focus:outline-none"
+    >
+    <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded-r hover:bg-yellow-300">
+      🔍
+    </button>
+  </form>
+
+  <!-- Đăng nhập + Giỏ hàng -->
+  <div class="flex items-center gap-3">
+    <a href="{% url 'loginn' %}" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">Đăng nhập</a>
+    <a href="{% url 'cart' %}" class="bg-white text-green-700 px-4 py-2 rounded hover:bg-gray-100">🛒 Giỏ hàng</a>
+  </div>
+</nav>
+
+<div class="container mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 mg-top-200">
+
+    <!-- Sidebar bên trái -->
+    <aside class="md:col-span-1 space-y-6">
+
+        <!-- Danh mục -->
+        <div class="bg-white shadow rounded p-4">
+            <h2 class="text-lg font-bold border-b pb-2 mb-3 text-green-700">DANH MỤC SẢN PHẨM</h2>
+            <ul class="space-y-2">
+                <li><a href="#" class="block hover:text-green-600">Sữa uống, Sữa chua</a></li>
+                <li><a href="#" class="block hover:text-green-600">Hạt nêm</a></li>
+                <li><a href="#" class="block hover:text-green-600">Nước giải khát</a></li>
+                <li>
+                    <details class="group">
+                        <summary class="cursor-pointer hover:text-green-600">Mì ăn liền</summary>
+                        <ul class="pl-4 mt-1 space-y-1">
+                            <li><a href="#" class="hover:text-green-600">Mì</a></li>
+                            <li><a href="#" class="hover:text-green-600">Phở</a></li>
+                            <li><a href="#" class="hover:text-green-600">Cháo</a></li>
+                        </ul>
+                    </details>
+                </li>
+                <li><a href="#" class="block hover:text-green-600">Gia vị</a></li>
+            </ul>
+        </div>
+
+        <!-- Tìm kiếm -->
+        <div class="bg-white shadow rounded p-4">
+            <h2 class="text-lg font-bold border-b pb-2 mb-3 text-green-700">TÌM KIẾM SẢN PHẨM</h2>
+            <form method="get" action="#">
+                <input type="text" placeholder="Tìm kiếm sản phẩm..." 
+                       class="w-full border rounded px-3 py-2 focus:outline-green-600">
+                <button type="submit" 
+                        class="w-full mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        Tìm kiếm
+                </button>
+            </form>
+        </div>
+
+        <!-- Sản phẩm bán chạy -->
+        <div class="bg-white shadow rounded p-4">
+            <h2 class="text-lg font-bold border-b pb-2 mb-3 text-green-700">SẢN PHẨM BÁN CHẠY</h2>
+            <ul class="space-y-3">
+                <li>
+                    <a href="#" class="flex items-center space-x-3">
+                        <img src="/static/images/no-image.png" alt="sp1" class="w-12 h-12 object-cover rounded">
+                        <span>Mì Kokomi Lẩu Bò</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center space-x-3">
+                        <img src="/static/images/no-image.png" alt="sp2" class="w-12 h-12 object-cover rounded">
+                        <span>Sữa hộp Vinamilk</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Nội dung chính -->
+    <main class="md:col-span-3 bg-white shadow rounded p-6">
+
+        <!-- Thông tin sản phẩm -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Hình ảnh -->
+            <div>
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-96 object-cover rounded shadow">
+                {% else %}
+                    <img src="/static/images/no-image.png" alt="No image" class="w-full h-96 object-cover rounded">
+                {% endif %}
+            </div>
+
+            <!-- Chi tiết -->
+            <div>
+                <h1 class="text-2xl font-bold text-green-700">{{ product.name }}</h1>
+                <p class="text-red-600 text-xl font-bold mt-2">{{ product.price }}₫ / {{ product.get_unit_display }}</p>
+                
+                <!-- Nút số lượng -->
+                <div class="flex items-center mt-3 space-x-2">
+                    <button class="px-3 py-1 border rounded">-</button>
+                    <input type="text" value="1" class="w-12 text-center border rounded">
+                    <button class="px-3 py-1 border rounded">+</button>
+                </div>
+
+                <!-- Nút mua hàng -->
+                {% if product.status == "available" %}
+                    <button class="mt-4 bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+                        MUA HÀNG
+                    </button>
+                {% else %}
+                    <button class="mt-4 bg-gray-400 text-white px-6 py-2 rounded cursor-not-allowed">
+                        Hết hàng
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab mô tả & đánh giá -->
+        <div class="mt-10">
+            <ul class="flex border-b">
+                <li class="mr-6"><a href="#" class="inline-block py-2 px-4 font-bold text-green-600">Mô tả</a></li>
+                <li class="mr-6"><a href="#" class="inline-block py-2 px-4 hover:text-green-600">Đánh giá (0)</a></li>
+            </ul>
+            <div class="mt-4 text-gray-700">
+                {{ product.description|default:"Chưa có mô tả cho sản phẩm này." }}
+            </div>
+        </div>
+    </main>
+
+</div>
