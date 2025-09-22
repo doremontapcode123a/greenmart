@@ -33,9 +33,36 @@
 
   <!-- Đăng nhập + Giỏ hàng -->
   <div class="flex items-center gap-3">
-    <a href="{% url 'loginn' %}" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">Đăng nhập</a>
-    <a href="{% url 'cart' %}" class="bg-white text-green-700 px-4 py-2 rounded hover:bg-gray-100">🛒 Giỏ hàng</a>
+  {% if request.user.is_authenticated %}
+    <div class="bg-green-700 text-white px-4 py-2 rounded">
+      👋 Xin chào, {{ request.user.username }}
+    </div>
+    <a href="{% url 'logout' %}" 
+       class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400">
+      Đăng xuất
+    </a>
+  {% else %}
+    <a href="{% url 'loginn' %}" 
+       class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
+      Đăng nhập
+    </a>
+  {% endif %}
+
+  <div class="relative">
+    <a href="{% url 'cart' %}" 
+       class="bg-white text-green-700 px-4 py-2 rounded hover:bg-gray-100 relative">
+      🛒 Giỏ hàng
+      {% if items > 0 %}
+        <span class="absolute -top-1 -right-1 bg-red-600 text-white 
+                     text-[10px] font-bold w-5 h-5 flex items-center 
+                     justify-center rounded-full">
+          {{ items }}
+        </span>
+      {% endif %}
+    </a>
   </div>
+</div>
+
 </nav>
 
   <!-- Banner -->
@@ -60,15 +87,23 @@
 
       <!-- Card -->
       {% for product in products %}
+      
       <a href="{% url 'detail' product.slug %}" class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
-        <img src="{{ product.image.url }}"
-             alt="{{ product.name}}" class="w-full h-40 object-cover">
-        <div class="p-4 text-center">
-          <h3 class="font-semibold text-lg">{{ product.name }}</h3>
-          <p class="text-red-600 font-bold">{{ product.price }}/{{product.unit}}</p>
-          <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">Thêm vào giỏ</button>
-        </div>
-      </a>
+  <img src="{{ product.image.url }}" alt="{{ product.name}}" class="w-full h-40 object-cover">
+  <div class="p-4 text-center">
+    <h3 class="font-semibold text-lg">{{ product.name }}</h3>
+    <p class="text-red-600 font-bold">{{ product.price }}/{{product.unit}}</p>
+    <form method="post" action="{% url 'add_to_cart' product.slug %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
+          Thêm vào giỏ
+        </button>
+      </form>
+  </div>
+</a>
+
+
       {% endfor %}
 
       <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
@@ -91,15 +126,7 @@
         </div>
       </div>
 
-      <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
-        <img src="https://images.unsplash.com/photo-1589927986089-35812388d1b5"
-             alt="Cà rốt" class="w-full h-40 object-cover">
-        <div class="p-4 text-center">
-          <h3 class="font-semibold text-lg">Cà rốt</h3>
-          <p class="text-red-600 font-bold">20,000₫ / kg</p>
-          <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">Thêm vào giỏ</button>
-        </div>
-      </div>
+      
 
     </div>
     
@@ -125,4 +152,23 @@
     © 2025 Green Grocer. All rights reserved.
   </footer>
 </body>
+{% if messages %}
+  <div id="toast-container" class="fixed top-20 right-5 z-50 space-y-2">
+    {% for message in messages %}
+      <div class="toast bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium 
+                  transition-opacity duration-1000 ease-in-out opacity-100">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+<script>
+  
+  setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(toast => {
+      toast.classList.add('opacity-0');  
+      setTimeout(() => toast.remove(), 1000); 
+    });
+  }, 3000);
+</script>
 </html>

@@ -9,7 +9,7 @@
 
   <!-- Header -->
   <header class="bg-green-700 text-white p-4 flex justify-between items-center">
-    <div class="text-2xl font-bold">GREEN <span class="text-yellow-300">MART</span></div>
+    <a href="{% url 'home' %}" class="text-2xl font-bold">GREEN <span class="text-yellow-300">MART</span></a>
     <a href="{% url 'home' %}" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
       ← Tiếp tục mua sắm
     </a>
@@ -29,13 +29,22 @@
           </tr>
         </thead>
         <tbody>
+          
+          {% for product in products %}
           <tr class="border-b">
-            <td class="p-3">Cà chua</td>
-            <td class="p-3">2</td>
-            <td class="p-3">25,000₫</td>
-            <td class="p-3 font-bold">50,000₫</td>
+            <td class="p-3">{{product.product.name}}</td>
+            <td class="p-3">{{product.quantity}}</td>
+            <td class="p-3">{{product.product.price}}</td>
+            <td class="p-3 font-bold">{{product.get_total}}</td>
           </tr>
+          {% endfor %}
         </tbody>
+        <tr class="border-b">
+            <td class="p-3"><strong>Tổng số sản phẩm:</strong></td>
+            <td class="p-3">{{total_items}}</td>
+            <td class="p-3"><strong>Tổng tiền:</strong></td>
+            <td class="p-3 font-bold">{{total_money}}</td>
+          </tr>
       </table>
       <div class="text-right mt-6">
       <a href="{% url 'checkout' %}" class="text-right mt-6">

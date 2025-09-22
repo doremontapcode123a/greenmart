@@ -10,7 +10,7 @@
   <!-- Header -->
   <header class="bg-green-700 text-white p-4 flex justify-between items-center">
     <div class="text-2xl font-bold">GREEN <span class="text-yellow-300">MART</span></div>
-    <a href="cart.html" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
+    <a href="{% url 'cart' %}" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
       ← Giỏ hàng
     </a>
   </header>
@@ -43,7 +43,30 @@
         </form>
       </div>
 
-      <!-- Tóm tắt đơn hàng -->
       <div class="bg-white p-6 shadow rounded-lg">
-        <h2 class="text-xl font-semibold mb-4">Đơn hàng của bạn</h2>
-        <div class="border-b pb-3 mb-3">
+  <h2 class="text-xl font-semibold mb-4">Đơn hàng của bạn</h2>
+  
+  <!-- Danh sách sản phẩm -->
+  <div class="border-b pb-3 mb-3 space-y-3">
+    <!-- Sản phẩm 1 -->
+     {% for product in products %}
+    <div class="flex justify-between">
+      <span> {{product}} </span>
+      <span class="font-medium">{{product.get_total}}</span>
+    </div>
+    {% endfor %}
+   
+    
+  </div>
+
+  <!-- Tổng tiền -->
+  <div class="flex justify-between text-lg font-bold text-green-700 mb-4">
+    <span>Tổng cộng</span>
+    <span>{{total_money}}</span>
+  </div>
+
+  <!-- Nút xác nhận -->
+  <button class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-500">
+    Xác nhận đặt hàng
+  </button>
+</div>
