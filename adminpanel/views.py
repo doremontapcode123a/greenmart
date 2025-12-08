@@ -246,3 +246,7 @@ def delete_promotion(request, id):
         promotion.delete()
 
     return redirect("admin_promotion")
+
+def orders_complete(request):
+    orders = Order.objects.filter(complete=True).order_by('-date_order')
+    return render(request, "ordersComplete.html", {"orders":orders})

@@ -76,10 +76,15 @@ class Order(models.Model):
     customer = models.ForeignKey(User, max_length=100, on_delete=models.SET_NULL, null=True, blank=True)
     date_order = models.DateTimeField(max_length=100,auto_now_add=True)
     complete =  models.BooleanField(default=False,null=True,blank=False)
-    transaction_id = models.CharField(max_length=100, auto_created=True)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
     promotion = models.ForeignKey(
         'Promotion', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders'
     )
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            import uuid
+            self.transaction_id = "GM" + uuid.uuid4().hex[:10].upper()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return str(self.id)
@@ -105,6 +110,11 @@ class Order(models.Model):
     def get_total_after_discount(self):
         """Tổng tiền sau khi áp khuyến mãi"""
         return self.get_cart_total - self.get_discount_amount
+    
+    @property
+    def get_transaction_id(self):
+        return self.transaction_id
+    
 
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)

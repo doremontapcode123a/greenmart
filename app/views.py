@@ -361,4 +361,22 @@ def profile_view(request):
         messages.success(request, "✅ Cập nhật thông tin thành công!")
         return redirect('profile')
 
-    return render(request, 'profile.html', {'profile': profile})
+    return render(request, 'profile.html', {'profile': profile})\
+    
+
+
+def complete_cart(request):
+    
+    order = Order.objects.filter(customer=request.user, complete=False).first()
+
+    if not order:
+        return render(request, "complete.html", {"order": None})
+
+
+    order.complete = True
+    order.save()  
+
+    return render(request, "complete.html", {
+        "order": order,
+        "total_money": order.get_total_after_discount if order.promotion else order.get_cart_total,
+    })

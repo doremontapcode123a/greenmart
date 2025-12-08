@@ -17,4 +17,5 @@ urlpatterns = [
     path("addPromotion", views.add_promotion, name="add_promotion"),
     path("deletePromotion/<int:id>", views.delete_promotion, name="delete_promotion"),
     path("editPrommotion/<int:id>",views.edit_promotion, name="edit_promotion" ),
+    path("orders_complete/", views.orders_complete, name="orders_complete")
 ]
