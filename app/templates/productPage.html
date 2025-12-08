@@ -139,6 +139,14 @@
         });
       });
     });
+    const params = new URLSearchParams(window.location.search);
+    const initialCategory = params.get("category");
+
+    if (initialCategory) {
+    
+      const activeBtn = document.querySelector(`.category-btn[data-category="${initialCategory}"]`);
+      if (activeBtn) activeBtn.click();
+    }
   </script>
   {% if messages %}
   <div id="toast-container" class="fixed top-20 right-5 z-50 space-y-2">

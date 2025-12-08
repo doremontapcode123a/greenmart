@@ -34,9 +34,9 @@
   <!-- Đăng nhập + Giỏ hàng -->
   <div class="flex items-center gap-3">
   {% if request.user.is_authenticated %}
-    <div class="bg-green-700 text-white px-4 py-2 rounded">
-      👋 Xin chào, {{ request.user.username }}
-    </div>
+    <a href="{% url 'profile' %}"  class="bg-green-700 text-white px-4 py-2 rounded">
+      <u><i>👋 Xin chào, {{ request.user.username }}</i></u>
+    </a>
     <a href="{% url 'logout' %}" 
        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400">
       Đăng xuất

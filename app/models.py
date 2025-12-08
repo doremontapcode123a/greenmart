@@ -193,3 +193,30 @@ class Promotion(models.Model):
                         discount += item.get_total * (self.discount_value / 100)
 
         return round(discount, 2)
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField(default=1)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies'
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name} ({self.rating}⭐)"
+    @property
+    def is_parent(self):
+        return self.parent is None
+    
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    full_name = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.user.username

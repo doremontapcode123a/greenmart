@@ -46,12 +46,26 @@
           </ul>
 
           <div class="mt-3 text-right">
+            
+          
+          {% if order.promotion and order.promotion.id == promo.id %}
+            <form method="post" action="{% url 'cancel_promotion' promo.id %}" class="mt-3">
+            {% csrf_token %}
+              <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-green-500">
+                Hủy Áp dụng
+              </button>
+            </form>
+
+            {% else %}
             <form method="post" action="{% url 'use_promotion' promo.id %}" class="mt-3">
-          {% csrf_token %}
-          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
-            Áp dụng
-          </button>
-        </form>
+                  {% csrf_token %}
+              <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
+                Áp dụng
+              </button>
+            </form>
+          {% endif %}
+          
+        
           </div>
         </div>
       {% endfor %}

@@ -22,26 +22,74 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       
       <!-- Form nhập thông tin -->
+      
       <div class="bg-white p-6 shadow rounded-lg">
         <h2 class="text-xl font-semibold mb-4">Thông tin khách hàng</h2>
-        <form>
-          <label class="block mb-2">Họ và tên</label>
-          <input type="text" class="w-full border p-2 rounded mb-4" placeholder="Nguyễn Văn A">
+        {% if profile.full_name %}
+        <form method="POST">
+         
+        {% csrf_token %}
 
-          <label class="block mb-2">Số điện thoại</label>
-          <input type="text" class="w-full border p-2 rounded mb-4" placeholder="0123456789">
+    <div class="mb-4">
+      <label class="block font-medium">Họ và tên</label>
+      <input type="text" name="full_name" value="{{ profile.full_name }}" 
+             class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400">
+    </div>
 
-          <label class="block mb-2">Địa chỉ giao hàng</label>
-          <textarea class="w-full border p-2 rounded mb-4" rows="3" placeholder="123, Đường ABC, Quận XYZ"></textarea>
+    <div class="mb-4">
+      <label class="block font-medium">Số điện thoại</label>
+      <input type="text" name="phone" value="{{ profile.phone }}" 
+             class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400">
+    </div>
 
-          <label class="block mb-2">Phương thức thanh toán</label>
+    <div class="mb-4">
+      <label class="block font-medium">Địa chỉ giao hàng</label>
+      <textarea name="address" rows="3"
+                class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400">{{ profile.address }}</textarea>
+    </div>
+
+    
+
           <select class="w-full border p-2 rounded mb-4">
             <option>Thanh toán khi nhận hàng (COD)</option>
             <option>Chuyển khoản ngân hàng</option>
             <option>Ví điện tử (Momo, ZaloPay...)</option>
           </select>
         </form>
+        {% else %}
+        <form method="POST">
+         
+        {% csrf_token %}
+
+    <div class="mb-4">
+      <label class="block font-medium">Họ và tên</label>
+      <input placeholder="VD:Nguyen Van A" type="text" name="full_name" value="" 
+             class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400">
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-medium">Số điện thoại</label>
+      <input placeholder="VD:0123456789" type="text" name="phone" value="" 
+             class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400">
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-medium">Địa chỉ giao hàng</label>
+      <textarea placeholder="VD:123, Đường ABC, Quận XYZ" name="address" rows="3"
+                class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400"></textarea>
+    </div>
+
+    
+
+          <select class="w-full border p-2 rounded mb-4">
+            <option>Thanh toán khi nhận hàng (COD)</option>
+            <option>Chuyển khoản ngân hàng</option>
+            <option>Ví điện tử (Momo, ZaloPay...)</option>
+          </select>
+        </form>
+        {% endif %}
       </div>
+
 
       <div class="bg-white p-6 shadow rounded-lg">
   <h2 class="text-xl font-semibold mb-4">Đơn hàng của bạn</h2>

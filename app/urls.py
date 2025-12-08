@@ -22,6 +22,12 @@ urlpatterns = [
     # path("applypromotions/", views.apply_promotion, name="promotions_list"),
     path('promotions/', views.promotion_list, name='promotion_list'),
     path('promotions/use/<int:promo_id>/', views.use_promotion, name='use_promotion'),
+    path('promotions/cancel/<int:promo_id>/', views.cancel_promotion, name='cancel_promotion'),
+    path('add-to-cart-detail/<slug:slug>', views.add_to_cart_detail, name="add_to_cart_detail" ),
+    path('product/<slug:slug>/add_review/', views.add_review, name='add_review'),
+    path('review/<int:review_id>/reply/', views.reply_review, name='reply_review'),
+    path('profile/', views.profile_view, name='profile'),
+
 
 
 ]

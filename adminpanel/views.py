@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from app.models import Product, Category, Order, User  
+from app.models import Product, Category, Order, User, Promotion  
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login, logout
 from app import models
+from datetime import date, datetime, timezone
+from django.utils import timezone  
 
 def dashboard(request):
     product_count = Product.objects.count()
@@ -165,3 +167,82 @@ def delete_product(request, slug):
     product = Product.objects.get(slug = slug)
     product.delete()
     return redirect("admin_products")
+
+
+def promotion(request):
+    promotions = Promotion.objects.all()
+
+    return render(request, "promotion.html", {"promotions":promotions})
+
+def edit_promotion(request, id):
+    promotion = Promotion.objects.get(id = id)
+
+    return render(request, "editPromotion.html", {"promotion":promotion})
+
+def add_promotion(request):
+    promotion = Promotion.objects.all()
+    if request.method =="POST":
+        name = request.POST.get("name")
+        code = request.POST.get("code")
+        discount_type = request.POST.get("discount_type")
+        discount_value = request.POST.get("discount_value")
+        type_apply = request.POST.get("apply_type")
+        start_date_str = request.POST.get("start_date")
+        end_date_str = request.POST.get("end_date")
+        min_order = request.POST.get("min_order_value")
+        # try:
+        if(True):
+            
+
+            start_date = datetime.fromisoformat(start_date_str) if start_date_str else datetime.now()
+            end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+            print(start_date)
+            print(end_date)
+            if timezone.is_naive(start_date):
+                start_date = timezone.make_aware(start_date)
+            if end_date and timezone.is_naive(end_date):
+                end_date = timezone.make_aware(end_date)
+
+            now = timezone.now()
+
+        # Kiểm tra trạng thái active
+            if start_date > now:
+               is_active = False
+            elif end_date and end_date < now:
+                is_active = False
+            else:
+                is_active = True
+            print(is_active)
+            Promotion.objects.create(
+                name=name,
+                code=code,
+                discount_type=discount_type,
+                discount_value=discount_value,
+                apply_type=type_apply,
+                start_date=start_date or datetime.now(),
+                end_date=end_date,
+                min_order_value=min_order or 0,
+                
+                is_active=is_active,
+            )
+            messages.success(request, f"✅ Đã thêm khuyến mãi '{name}' thành công!")
+            return redirect('admin_promotion')  
+        # except Exception as e:
+        #     messages.error(request, f"❌ Lỗi khi thêm khuyến mãi: {e}")
+
+    return render(request, "addPromotion.html", {"promotion": promotion})
+
+
+
+
+
+
+
+    return render(request, "addPromotion.html", {"promotion":promotion})
+
+def delete_promotion(request, id):
+    promotion = Promotion.objects.get(id = id)
+    if(promotion):
+        promotion.delete()
+
+    return redirect("admin_promotion")

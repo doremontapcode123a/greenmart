@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import HttpResponse, get_object_or_404
 from django.http import JsonResponse, Http404
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 
 # Create your views here.
 def home(request):
@@ -53,25 +53,27 @@ def cart(request):
 
 def checkout(request):
     order = Order.objects.filter(customer=request.user, complete=False).first()
-    
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
     if not order:
         
         order = Order.objects.create(customer=request.user, complete=False)
 
     products = order.orderitem_set.all()
-    total_items = order.get_cart_items
+ 
+    money = 0
     if order.promotion :
         total_money = order.get_total_after_discount
         money = order.get_cart_total - order.get_total_after_discount
     else:
-        total_items = order.get_cart_total
+      
+        total_money = order.get_cart_total
     
   
     return render(request, "checkout.html", {
         "order":order,
         "discount_amount":money,
         "products": products,
-        "total_items": total_items,
+        "profile":profile,
         "total_money": total_money,
     })
     
@@ -109,6 +111,7 @@ def register(request):
 def detail(request, slug):
     product = Product.objects.get(slug = slug)
     categories = Category.objects.all()
+    reviews = product.reviews.filter(parent__isnull=True).order_by('-created_at')
     if request.user.is_authenticated:
         # Giỏ hàng cho user đã login
         order, created = Order.objects.get_or_create(customer=request.user, complete=False)
@@ -122,7 +125,7 @@ def detail(request, slug):
 
     cartItems = order.get_cart_items if order else 0
     
-    return render(request, 'detail.html', {'product':product,"categories":categories,'items':cartItems})
+    return render(request, 'detail.html', {'product':product,"categories":categories,'items':cartItems,'reviews':reviews})
 
 
 def search(request):
@@ -157,6 +160,25 @@ def add_to_cart(request, slug):
 
     order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
     order_item.quantity += 1
+    order_item.save()
+
+    messages.success(request, f"✅ {product.name} đã được thêm vào giỏ hàng!")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+def add_to_cart_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    if request.method == "POST":
+       quantity = request.POST.get("quantity")
+
+    if request.user.is_authenticated:
+        order, created = Order.objects.get_or_create(customer=request.user, complete=False)
+    else:
+        # Nếu chưa login thì tạm cho order None (hoặc redirect login)
+        order, created = Order.objects.get_or_create(customer=None, complete=False)
+
+    order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
+    order_item.quantity += int(quantity)
     order_item.save()
 
     messages.success(request, f"✅ {product.name} đã được thêm vào giỏ hàng!")
@@ -242,8 +264,21 @@ def dashboard(request):
 def promotion_list(request):
     user = request.user
     promotions = user.promotions.all()
+    order = Order.objects.filter(customer = request.user, complete = False).first()
+   
  
-    return render(request, 'promotions_list.html', {'promotions': promotions})
+    return render(request, 'promotions_list.html', {'promotions': promotions,'order':order})
+
+
+def cancel_promotion(request, promo_id):
+    promo = get_object_or_404(Promotion, id = promo_id)
+    order = Order.objects.filter(customer = request.user, complete = False).first()
+    order.promotion = None
+    order.save()
+    return redirect('cart')
+
+
+
 
 
 
@@ -279,3 +314,51 @@ def use_promotion(request, promo_id):
     messages.success(request, f"🎉 Đã áp dụng mã '{promo.code}' thành công! Giảm {promo.discount_value}{'%' if promo.discount_type == 'percent' else 'đ'}.")
 
     return redirect('cart')
+
+@login_required
+def add_review(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    if request.method == 'POST':
+        rating = int(request.POST.get('rating', 0))
+        comment = request.POST.get('comment', '').strip()
+        if rating < 1 or rating > 5:
+            messages.error(request, "Số sao phải từ 1 đến 5.")
+        elif not comment:
+            messages.error(request, "Vui lòng nhập nội dung đánh giá.")
+        else:
+            Review.objects.create(
+                product=product,
+                user=request.user,
+                rating=rating,
+                comment=comment
+            )
+            messages.success(request, "Đánh giá của bạn đã được gửi thành công!")
+    return redirect('detail', product.slug)
+
+
+@login_required
+def reply_review(request, review_id):
+    parent_review = get_object_or_404(Review, id=review_id)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            Review.objects.create(
+                product=parent_review.product,
+                user=request.user,
+                comment=content,
+                parent=parent_review
+            )
+    return redirect('detail', slug=parent_review.product.slug)
+
+def profile_view(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        profile.full_name = request.POST.get('full_name')
+        profile.phone = request.POST.get('phone')
+        profile.address = request.POST.get('address')
+        profile.save()
+        messages.success(request, "✅ Cập nhật thông tin thành công!")
+        return redirect('profile')
+
+    return render(request, 'profile.html', {'profile': profile})
