@@ -1,4 +1,4 @@
-
+#!/bin/sh
 set -e
 
 echo "Đang tự động chạy Database Migrations..."
