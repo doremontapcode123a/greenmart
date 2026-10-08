@@ -40,7 +40,7 @@ pipeline {
                 sh "docker build -t ${ECR_REGISTRY}/${WEB_REPO}:${IMAGE_TAG} -t ${ECR_REGISTRY}/${WEB_REPO}:latest ."
                 
                 // Build Nginx Image (trỏ vào thư mục ./nginx)
-                sh "docker build -t ${ECR_REGISTRY}/${NGINX_REPO}:${IMAGE_TAG} -t ${ECR_REGISTRY}/${NGINX_REPO}:latest ./nginx"
+                sh "docker build -f nginx/Dockerfile -t ${ECR_REGISTRY}/${NGINX_REPO}:${IMAGE_TAG} -t ${ECR_REGISTRY}/${NGINX_REPO}:latest ."
             }
         }
 
