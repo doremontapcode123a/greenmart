@@ -7,5 +7,5 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Copy trực tiếp các thư mục chứa file tĩnh từ project gốc vào image của Nginx
-COPY staticfiles /staticfiles
+# COPY staticfiles /staticfiles
 COPY media /media
