@@ -3,6 +3,9 @@ import datetime
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth.models import User
+from decimal import Decimal
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
 # Create your models here.
 from django.db import models
 class Origin(models.TextChoices):
@@ -96,7 +99,7 @@ class Order(models.Model):
     @property
     def get_cart_total(self):
         orderitems = self.orderitem_set.all()
-        total = sum([item.get_total for item in orderitems])
+        total = sum(item.get_total for item in orderitems)
         return total
     
     @property
@@ -127,6 +130,8 @@ class OrderItem(models.Model):
 
     @property
     def get_total(self):
+        if not self.product:
+            return Decimal('0')
         return self.product.price * self.quantity
     
     
@@ -222,11 +227,29 @@ class Review(models.Model):
         return self.parent is None
     
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone = models.CharField(max_length=15, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    full_name = models.CharField(max_length=100, blank=True, null=True)
 
-    def __str__(self):
-        return self.user.username
+@receiver(user_logged_in)
+def merge_guest_cart(sender, request, user, **kwargs):
+    guest_id = request.session.pop('guest_order_id', None)
+    if not guest_id:
+        return
+
+    guest_order = Order.objects.filter(id=guest_id, customer=None, complete=False).first()
+    if not guest_order:
+        return
+
+    user_order = Order.objects.filter(customer=user, complete=False).first()
+    if not user_order:
+        user_order = Order.objects.create(customer=user, complete=False)
+
+    for item in guest_order.orderitem_set.all():
+        user_item, created = OrderItem.objects.get_or_create(
+            order=user_order,
+            product=item.product,
+            defaults={'quantity': item.quantity},
+        )
+        if not created:
+            user_item.quantity += item.quantity
+            user_item.save()
+
+    guest_order.delete()

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@kwc#h%p=fk^8c)n*%^=gub)@9#s*8z6n&9gitw^s6mu^$lzc0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -119,7 +119,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -145,3 +145,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "anhpha679@gmail.com"
 EMAIL_HOST_PASSWORD = "fhit keqo ofbv gvws"   
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+LOGIN_URL = '/loginn/'
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8088",
+    "http://127.0.0.1:8088",
+]

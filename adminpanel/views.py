@@ -30,7 +30,7 @@ def product_list(request):
     return render(request, 'product.html', {'products': products})
 
 def order_list(request):
-    orders = Order.objects.all().order_by('-date_order')
+    orders = Order.objects.filter(complete = True)
     return render(request, 'orders.html', {'orders': orders})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -164,8 +164,22 @@ def edit_product(request, slug):
 
 
 def delete_product(request, slug):
-    product = Product.objects.get(slug = slug)
-    product.delete()
+
+    product = get_object_or_404(Product, slug=slug)
+
+    # Không xóa DB thật
+    product.status = "hidden"
+
+    # Optional: set stock = 0
+    product.stock = 0
+
+    product.save()
+
+    messages.success(
+        request,
+        f"Đã ẩn sản phẩm {product.name}"
+    )
+
     return redirect("admin_products")
 
 

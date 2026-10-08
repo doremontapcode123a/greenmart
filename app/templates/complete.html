@@ -42,22 +42,18 @@
 
                 <p class="text-sm text-gray-500 mb-1">Tổng thanh toán:</p>
 
-                {% if order.promotion %}
-                    
-                    <p class="text-xl font-bold text-green-600">
-                        {{ order.get_total_after_discount }}₫
-                    </p>
+    <p class="text-xl font-bold text-green-600">
+        {{ total_money }}₫
+    </p>
 
-                    <p class="text-sm text-gray-500 mt-1">
-                        (Giảm {{ order.get_discount_amount }}₫ với mã 
-                        <strong class="text-green-600">{{ order.promotion.code }}</strong>)
-                    </p>
-
-                {% else %}
-                    <p class="text-xl font-bold text-green-600">
-                        {{ order.get_cart_total }}₫
-                    </p>
-                {% endif %}
+    {% if order.promotion %}
+        <p class="text-sm text-gray-500 mt-1">
+            (Giảm {{ order.get_discount_amount }}₫ với mã
+            <strong class="text-green-600">
+                {{ order.promotion.code }}
+            </strong>)
+        </p>
+    {% endif %}
             </div>
 
             <!-- Button -->

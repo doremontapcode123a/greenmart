@@ -31,9 +31,9 @@
   <!-- Đăng nhập + Giỏ hàng -->
   <div class="flex items-center gap-3">
   {% if request.user.is_authenticated %}
-    <div class="bg-green-700 text-white px-4 py-2 rounded">
-      👋 Xin chào, {{ request.user.username }}
-    </div>
+    <a href="{% url 'profile' %}"  class="bg-green-700 text-white px-4 py-2 rounded">
+      <u><i>👋 Xin chào, {{ request.user.username }}</i></u>
+    </a>
     <a href="{% url 'logout' %}" 
        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400">
       Đăng xuất
@@ -132,22 +132,43 @@
                 
                 <!-- Nút số lượng -->
                 <form method="post" action="{% url 'add_to_cart_detail' product.slug %}">
-                {% csrf_token %}
-  
-                <div class="flex items-center mt-3 space-x-2">
-                   <button type="button" id="btn-minus" class="px-3 py-1 border rounded">-</button>
-                   <input name="quantity" id="quantity" type="text" value="1" class="w-12 text-center border rounded">
-                   <button type="button" id="btn-plus" class="px-3 py-1 border rounded">+</button>
-                </div>
+    {% csrf_token %}
 
-                {% if product.status == "available" %}
-                <button type="submit" class="mt-4 bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
-                MUA HÀNG
-                </button>
-                {% else %}
-                <p class="text-gray-500 mt-4">Hết hàng</p>
-                {% endif %}
-                </form>
+    <div class="flex items-center mt-3 space-x-2">
+        <button type="button" id="btn-minus" class="px-3 py-1 border rounded">
+            -
+        </button>
+
+        <input 
+            name="quantity" 
+            id="quantity" 
+            type="text" 
+            value="1"
+            min="1"
+            class="w-12 text-center border rounded"
+        >
+
+        <button type="button" id="btn-plus" class="px-3 py-1 border rounded">
+            +
+        </button>
+    </div>
+
+    <p id="quantity-error" class="text-red-500 text-sm mt-2 hidden">
+        Số lượng phải là số nguyên dương lớn hơn 0
+    </p>
+
+    {% if product.status == "available" %}
+<button 
+    type="submit"
+    id="buy-button"
+    class="mt-4 bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition"
+>
+    MUA HÀNG
+</button>
+{% else %}
+    <p class="text-gray-500 mt-4">Hết hàng</p>
+    {% endif %}
+</form>
                     
             </div>
         </div>
@@ -252,7 +273,7 @@
       </form>
     {% else %}
       <p class="text-gray-600 mt-4">
-        <a href="{% url 'login' %}" class="text-green-600 hover:underline">Đăng nhập</a> để viết đánh giá.
+        <a href="{% url 'loginn' %}" class="text-green-600 hover:underline">Đăng nhập</a> để viết đánh giá.
       </p>
     {% endif %}
   </div>
@@ -269,27 +290,16 @@
       </div>
     {% endif %}
     <script>
-      const btnPlus = document.getElementById("btn-plus")
-      const btnMinus = document.getElementById("btn-minus")
+      
       const quantity = document.getElementById("quantity")
-
-
-      btnPlus.addEventListener("click", () =>{
-        let value = parseInt(quantity.value)
-        quantity.value = value + 1
-
-      })
-      btnMinus.addEventListener("click", () =>{
-        let value = parseInt(quantity.value)
-        if(value > 1)
-          quantity.value = value - 1
-
-      })
-
-
-
       const links = document.querySelectorAll('.tab-link');
-  const contents = document.querySelectorAll('.tab-content');
+      const contents = document.querySelectorAll('.tab-content');
+
+     
+
+
+
+      
 
   links.forEach(link => {
     link.addEventListener('click', e => {
@@ -340,6 +350,92 @@
     const form = document.getElementById(`reply-form-${id}`);
     form.classList.toggle('hidden');
   }
+
+    const quantityInput = document.getElementById("quantity");
+    const btnPlus = document.getElementById("btn-plus");
+    const btnMinus = document.getElementById("btn-minus");
+    const errorText = document.getElementById("quantity-error");
+
+    // Nút +
+    btnPlus.addEventListener("click", () => {
+        let value = parseInt(quantityInput.value) || 1;
+        quantityInput.value = value + 1;
+        validateQuantity();
+        hideError();
+    });
+
+    // Nút -
+    btnMinus.addEventListener("click", () => {
+        let value = parseInt(quantityInput.value) || 1;
+
+        if (value > 1) {
+            quantityInput.value = value - 1;
+        }
+
+        validateQuantity();
+    });
+
+    // Kiểm tra khi nhập
+   quantityInput.addEventListener("input", validateQuantity);
+
+const buyButton = document.getElementById("buy-button");
+
+function validateQuantity() {
+    let value = quantityInput.value.trim();
+
+    // Sai dữ liệu
+    if (!/^[1-9]\d*$/.test(value)) {
+
+        errorText.classList.remove("hidden");
+
+        quantityInput.classList.add(
+            "border-red-500",
+            "cursor-not-allowed"
+        );
+
+        // KHÓA NÚT
+        buyButton.disabled = true;
+
+        // Làm mờ nút
+        buyButton.classList.add(
+            "opacity-50",
+            "cursor-not-allowed"
+        );
+
+        return false;
+    }
+
+    // Hợp lệ
+    errorText.classList.add("hidden");
+
+    quantityInput.classList.remove(
+        "border-red-500",
+        "cursor-not-allowed"
+    );
+
+    // MỞ KHÓA NÚT
+    buyButton.disabled = false;
+
+    buyButton.classList.remove(
+        "opacity-50",
+        "cursor-not-allowed"
+    );
+
+    return true;
+}
+
+    function hideError() {
+        errorText.classList.add("hidden");
+        quantityInput.classList.remove("border-red-500");
+    }
+
+    // Chặn submit nếu sai
+    document.querySelector("form").addEventListener("submit", function(e) {
+        if (!validateQuantity()) {
+            e.preventDefault();
+        }
+    });
+
     </script>
     
 

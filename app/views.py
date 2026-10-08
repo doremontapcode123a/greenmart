@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect
+from sympy import re
 from .models import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -6,10 +7,12 @@ from django.shortcuts import HttpResponse, get_object_or_404
 from django.http import JsonResponse, Http404
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required
+import re
+from django.db import transaction
+from django.views.decorators.http import require_POST
 
-# Create your views here.
 def home(request):
-    products = Product.objects.all()
+    products = Product.objects.filter(is_featured = True)
 
     if request.user.is_authenticated:
         # Giỏ hàng cho user đã login
@@ -29,19 +32,36 @@ def home(request):
         "items": cartItems
     })
 
+
 def cart(request):
+    if request.user.is_authenticated:
+        order, created = Order.objects.get_or_create(
+            customer=request.user,
+            complete=False
+        )
+    else:
+        if not request.session.session_key:
+            request.session.create()
+
+        session_key = request.session.session_key
+
+        order, created = Order.objects.get_or_create(
+            transaction_id=session_key,
+            complete=False
+        )
+
+    products = order.orderitem_set.all()
     
-    order = Order.objects.filter(customer=request.user, complete=False).first()
-    
-    if not order:
-        
-        order = Order.objects.create(customer=request.user, complete=False)
 
     products = order.orderitem_set.all()
     total_items = order.get_cart_items
     total_money = order.get_cart_total
     promotions = Promotion.objects.all()
-    
+    order_items = order.orderitem_set.all()
+
+    for item in order_items:
+        if item.product.status == "hidden":
+            item.delete()
     return render(request, "cart.html", {
         "order":order,
         "products": products,
@@ -51,29 +71,28 @@ def cart(request):
     })
 
 
+@login_required
 def checkout(request):
-    order = Order.objects.filter(customer=request.user, complete=False).first()
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-    if not order:
-        
-        order = Order.objects.create(customer=request.user, complete=False)
+    order = get_cart(request)
 
+    if not order.orderitem_set.exists():
+        messages.warning(request, "Giỏ hàng đang trống.")
+        return redirect('cart')  # đổi thành tên url của trang giỏ hàng
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
     products = order.orderitem_set.all()
- 
-    money = 0
-    if order.promotion :
+
+    if order.promotion:
         total_money = order.get_total_after_discount
-        money = order.get_cart_total - order.get_total_after_discount
     else:
-      
         total_money = order.get_cart_total
-    
-  
+    discount_amount = order.get_cart_total - total_money
+
     return render(request, "checkout.html", {
-        "order":order,
-        "discount_amount":money,
+        "order": order,
+        "discount_amount": discount_amount,
         "products": products,
-        "profile":profile,
+        "profile": profile,
         "total_money": total_money,
     })
     
@@ -101,9 +120,24 @@ def register(request):
         password = request.POST.get("pwd")
         pwd2 = request.POST.get('pwd1')
         if pwd2 != password:
-            return HttpResponse("mat khau khong khop vui long nhap lai")
+            messages.error(request,"Tên đăng nhập không được chứa dấu hoặc khoảng trắng")
+            return redirect('register')
+        if User.objects.filter(email=email).exists():
+            messages.error(request,"Email đã tồn tại")
+            return redirect('register')
+        if User.objects.filter(username=username).exists():
+            messages.error(request,"Tên đăng nhập đã tồn tại")
+            return redirect('register')
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            messages.error(request,"Tên đăng nhập không được chứa dấu hoặc khoảng trắng")
+            return redirect('register')
+
+        if not re.match(r'^[\x00-\x7F]+$', password) or " " in password:
+            messages.error(request,"Mật khẩu không được chứa dấu hoặc khoảng trắng")
+            return redirect('register')
         user = User.objects.create_user(username = username, email=email, password=password)
         user.save()
+
         return redirect('loginn')
     return render(request, "register.html")
 
@@ -149,16 +183,29 @@ def search(request):
             'items':cartItems
         })
 
+def get_cart(request):
+    if request.user.is_authenticated:
+        order, _ = Order.objects.get_or_create(
+            customer=request.user,
+            complete=False,
+        )
+    else:
+        if not request.session.session_key:
+            request.session.create()
+        order, _ = Order.objects.get_or_create(
+            transaction_id=request.session.session_key,
+            customer=None,
+            complete=False,
+        )
+        request.session['guest_order_id'] = order.id
+    return order
+
+
 def add_to_cart(request, slug):
     product = get_object_or_404(Product, slug=slug)
+    order = get_cart(request)
 
-    if request.user.is_authenticated:
-        order, created = Order.objects.get_or_create(customer=request.user, complete=False)
-    else:
-        # Nếu chưa login thì tạm cho order None (hoặc redirect login)
-        order, created = Order.objects.get_or_create(customer=None, complete=False)
-
-    order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
+    order_item, _ = OrderItem.objects.get_or_create(order=order, product=product)
     order_item.quantity += 1
     order_item.save()
 
@@ -228,7 +275,9 @@ def logout_view(request):
 
 def productPage(request):
     categories = Category.objects.all()
-    products = Product.objects.all()
+    products = Product.objects.filter(
+    status="available"
+)
     if request.user.is_authenticated:
         # Giỏ hàng cho user đã login
         order, created = Order.objects.get_or_create(customer=request.user, complete=False)
@@ -262,57 +311,54 @@ def dashboard(request):
 
 
 def promotion_list(request):
-    user = request.user
-    promotions = user.promotions.all()
-    order = Order.objects.filter(customer = request.user, complete = False).first()
-   
- 
-    return render(request, 'promotions_list.html', {'promotions': promotions,'order':order})
+    promotions = Promotion.objects.filter(is_active=True)
+    order = get_cart(request)
+    return render(request, 'promotions_list.html', {
+        'promotions': promotions,
+        'order': order,
+    })
 
 
 def cancel_promotion(request, promo_id):
-    promo = get_object_or_404(Promotion, id = promo_id)
-    order = Order.objects.filter(customer = request.user, complete = False).first()
+    order = get_cart(request)
     order.promotion = None
+    order.discount_amount = 0
+    order.total_after_discount = order.get_cart_total
     order.save()
     return redirect('cart')
 
 
-
-
-
-
 def use_promotion(request, promo_id):
     promo = get_object_or_404(Promotion, id=promo_id, is_active=True)
-    user = request.user
+    order = get_cart(request)
 
+    cart_total = order.get_cart_total
 
-    order = Order.objects.filter(customer=user, complete=False).first()
-    if not order:
-        messages.error(request, "Không tìm thấy đơn hàng để áp dụng khuyến mãi.")
+    if not order.orderitem_set.exists():
+        messages.warning(request, "Giỏ hàng đang trống, chưa thể áp dụng mã.")
         return redirect('cart')
 
-
-    if order.get_cart_total < promo.min_order_value:
+    if cart_total < promo.min_order_value:
         messages.warning(request, "Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này.")
         return redirect('cart')
 
- 
     if promo.discount_type == 'money':
         discount = promo.discount_value
     else:
-        discount = order.get_cart_total * promo.discount_value / 100
+        discount = cart_total * promo.discount_value / 100
 
-    new_total = max(order.get_cart_total - discount, 0)
+    discount = min(discount, cart_total)  # không giảm quá tổng tiền
 
-  
     order.promotion = promo
     order.discount_amount = discount
-    order.total_after_discount = new_total
+    order.total_after_discount = cart_total - discount
     order.save()
 
-    messages.success(request, f"🎉 Đã áp dụng mã '{promo.code}' thành công! Giảm {promo.discount_value}{'%' if promo.discount_type == 'percent' else 'đ'}.")
-
+    messages.success(
+        request,
+        f"🎉 Đã áp dụng mã '{promo.code}' thành công! "
+        f"Giảm {promo.discount_value}{'%' if promo.discount_type == 'percent' else 'đ'}."
+    )
     return redirect('cart')
 
 @login_required
@@ -366,17 +412,30 @@ def profile_view(request):
 
 
 def complete_cart(request):
-    
-    order = Order.objects.filter(customer=request.user, complete=False).first()
+    order = Order.objects.filter(
+        customer=request.user,
+        complete=False
+    ).first()
 
     if not order:
-        return render(request, "complete.html", {"order": None})
+        return render(request, "complete.html", {
+            "order": None
+        })
 
+    # Lấy tiền TRƯỚC khi complete order
+    if order.promotion:
+        total_money = order.get_total_after_discount
+    else:
+        total_money = order.get_cart_total
 
+    # Lưu trạng thái đơn hàng
     order.complete = True
-    order.save()  
+    order.save()
 
     return render(request, "complete.html", {
         "order": order,
-        "total_money": order.get_total_after_discount if order.promotion else order.get_cart_total,
+        "total_money": total_money,
     })
+
+def policy(request):
+    return render(request, "policy.html")
