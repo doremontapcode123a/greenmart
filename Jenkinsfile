@@ -78,6 +78,7 @@ pipeline {
                     aws ecs update-service \
                         --cluster ${CLUSTER_NAME} \
                         --service ${SERVICE_NAME} \
+                        --desired-count 1 \
                         --task-definition ${TASK_FAMILY} \
                         --force-new-deployment \
                         --region ${AWS_REGION}
