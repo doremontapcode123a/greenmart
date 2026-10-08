@@ -8,4 +8,4 @@ __pycache__
 .gitignore
 venv
 .venv
-db.sqlite3
+
