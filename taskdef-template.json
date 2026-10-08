@@ -1,6 +1,7 @@
 {
   "family": "greenmart-task",
   "networkMode": "awsvpc",
+  "executionRoleArn": "arn:aws:iam::410098332444:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "web",
