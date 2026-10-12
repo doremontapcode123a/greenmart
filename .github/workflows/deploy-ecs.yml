@@ -11,6 +11,10 @@ on:
         description: 'ECS Cluster name'
         required: true
         type: string
+      service_name:
+        description: 'ECS Service name'
+        required: true
+        type: string
   workflow_call:
     inputs:
       version:
@@ -21,16 +25,20 @@ on:
         description: 'ECS Cluster name'
         required: true
         type: string
+      service_name:
+        description: 'ECS Service name'
+        required: true
+        type: string
 
 env:
   AWS_REGION: ap-southeast-1
-  ECR_REGISTRY: 410098332444.dkr.ecr.ap-southeast-1.amazonaws.com # Đã cập nhật theo registry cũ của bạn
+  ECR_REGISTRY: 410098332444.dkr.ecr.ap-southeast-1.amazonaws.com
   ECR_REPOSITORY_APP: greenmart-app
   ECR_REPOSITORY_NGINX: greenmart-nginx
   TASK_FAMILY: greenmart-task
-  SERVICE_NAME: greenmart-service
   CONTAINER_NAME_APP: web
   CONTAINER_NAME_NGINX: nginx
+  # Đã xóa SERVICE_NAME ở đây vì giờ nó được truyền từ inputs vào
 
 jobs:
   deploy:
@@ -59,7 +67,6 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME_APP }}
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_APP }}:${{ inputs.version }}
           
-      # BƯỚC 2: Render Nginx (đầu vào là đầu ra của Bước 1)
       - name: Render Amazon ECS task definition for Nginx
         id: render-nginx
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -68,13 +75,11 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME_NGINX }}
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_NGINX }}:${{ inputs.version }}
 
-
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          # Sử dụng file json cuối cùng từ bước render-nginx để deploy
           task-definition: ${{ steps.render-nginx.outputs.task-definition }}
-          service: ${{ env.SERVICE_NAME }}
+          service: ${{ inputs.service_name }} # Nhận service từ file cha
           cluster: ${{ inputs.cluster_name }}
           wait-for-service-stability: true
           
@@ -82,6 +87,6 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster ${{ inputs.cluster_name }} \
-            --service ${{ env.SERVICE_NAME }} \
+            --service ${{ inputs.service_name }} \
             --desired-count 2
-          echo "Force set desired count to 2."
+          echo "Force set desired count to 2 for service ${{ inputs.service_name }}."
