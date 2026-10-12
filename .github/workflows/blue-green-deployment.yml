@@ -26,8 +26,8 @@ on:
         default: false
 
 env:
-  # Khai báo 1 Cluster duy nhất và 2 Services
-  CLUSTER_NAME: greenmart-cluster # BẠN CẦN SỬA LẠI TÊN CLUSTER CỦA BẠN VÀO ĐÂY
+ 
+  CLUSTER_NAME: greenmart-cluster-v2 
   BLUE_SERVICE: greenmart-service-blue
   GREEN_SERVICE: greenmart-service-green
 
