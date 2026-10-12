@@ -41,7 +41,7 @@ jobs:
     uses: ./.github/workflows/deploy-ecs.yml
     with:
       version: ${{ inputs.version }}
-      cluster_name: ${{ inputs.target_cluster == 'blue' && 'udemy-devops-cluster-blue' || 'udemy-devops-cluster-green' }}
+      cluster_name: ${{ inputs.target_cluster == 'blue' && 'greenmart-service-blue' || 'greenmart-service-green' }}
     secrets: inherit
 
   manual-approval:
